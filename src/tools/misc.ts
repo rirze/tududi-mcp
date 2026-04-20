@@ -218,4 +218,97 @@ export function registerMiscTools(server: McpServer) {
       };
     }
   );
+
+  server.registerTool(
+    "get_url_title",
+    {
+      description: "Fetch title and metadata for a URL",
+      inputSchema: {
+        url: z.string().describe("URL to inspect"),
+      },
+    },
+    async ({ url }) => {
+      const data = await tududiApi(`/url/title?url=${encodeURIComponent(url)}`);
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "extract_urls_from_text",
+    {
+      description: "Extract and preview the first URL found in text",
+      inputSchema: {
+        text: z.string().describe("Text that may contain URLs"),
+      },
+    },
+    async ({ text }) => {
+      const data = await tududiApi("/url/extract-from-text", {
+        method: "POST",
+        body: JSON.stringify({ text }),
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_random_quote",
+    {
+      description: "Get a random motivational quote from Tududi",
+    },
+    async () => {
+      const data = await tududiApi("/quotes/random");
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "list_feature_flags",
+    {
+      description: "List backend feature flags",
+    },
+    async () => {
+      const data = await tududiApi("/feature-flags");
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_version",
+    {
+      description: "Get the Tududi backend version",
+    },
+    async () => {
+      const data = await tududiApi("/version");
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_registration_status",
+    {
+      description: "Get whether registration is enabled on the backend",
+    },
+    async () => {
+      const data = await tududiApi("/registration-status");
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
 }

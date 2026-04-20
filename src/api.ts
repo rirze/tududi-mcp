@@ -124,6 +124,69 @@ export function summarizeView(view: any): any {
   };
 }
 
+export function summarizeNotification(notification: any): any {
+  return {
+    id: notification.id,
+    uid: notification.uid,
+    type: notification.type,
+    level: notification.level,
+    title: notification.title,
+    message: notification.message,
+    data: notification.data ?? null,
+    sources: Array.isArray(notification.sources) ? notification.sources : [],
+    read_at: notification.read_at ?? null,
+    sent_at: notification.sent_at ?? null,
+    created_at: notification.created_at ?? null,
+    updated_at: notification.updated_at ?? null,
+  };
+}
+
+export function summarizeHabit(habit: any): any {
+  return {
+    id: habit.id,
+    uid: habit.uid,
+    name: habit.name,
+    status: normalizeTaskStatusInput(habit.status) || habit.status,
+    priority: PRIORITY_MAP[habit.priority] || habit.priority,
+    habit_target_count: habit.habit_target_count ?? null,
+    habit_frequency_period: habit.habit_frequency_period ?? null,
+    habit_streak_mode: habit.habit_streak_mode ?? null,
+    habit_flexibility_mode: habit.habit_flexibility_mode ?? null,
+    habit_current_streak: habit.habit_current_streak ?? 0,
+    habit_best_streak: habit.habit_best_streak ?? 0,
+    habit_total_completions: habit.habit_total_completions ?? 0,
+    created_at: habit.created_at ?? null,
+    updated_at: habit.updated_at ?? null,
+  };
+}
+
+export function summarizeProfile(profile: any): any {
+  return {
+    uid: profile.uid,
+    email: profile.email,
+    name: profile.name ?? null,
+    surname: profile.surname ?? null,
+    appearance: profile.appearance ?? null,
+    language: profile.language ?? null,
+    timezone: profile.timezone ?? null,
+    first_day_of_week: profile.first_day_of_week ?? null,
+    avatar_image: profile.avatar_image ?? null,
+    telegram_chat_id: profile.telegram_chat_id ?? null,
+    task_summary_enabled: profile.task_summary_enabled ?? null,
+    task_summary_frequency: profile.task_summary_frequency ?? null,
+    task_intelligence_enabled: profile.task_intelligence_enabled ?? null,
+    auto_suggest_next_actions_enabled: profile.auto_suggest_next_actions_enabled ?? null,
+    pomodoro_enabled: profile.pomodoro_enabled ?? null,
+    today_settings: profile.today_settings ?? null,
+    sidebar_settings: profile.sidebar_settings ?? null,
+    productivity_assistant_enabled: profile.productivity_assistant_enabled ?? null,
+    next_task_suggestion_enabled: profile.next_task_suggestion_enabled ?? null,
+    notification_preferences: profile.notification_preferences ?? null,
+    keyboard_shortcuts: profile.keyboard_shortcuts ?? null,
+    ui_settings: profile.ui_settings ?? null,
+  };
+}
+
 export function summarizeSearchResult(result: any): any {
   switch (result?.type) {
     case "Task":

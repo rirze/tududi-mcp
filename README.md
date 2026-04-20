@@ -56,7 +56,13 @@ Ask Claude things like:
 
 **Views**: list_views, list_pinned_views, get_view, create_view, update_view, delete_view
 
-**Other**: list_inbox, get_inbox_item, add_to_inbox, update_inbox_item, process_inbox_item, analyze_inbox_text, delete_inbox_item, list_areas, get_area, create_area, update_area, delete_area, list_tags, get_tag, create_tag, update_tag, delete_tag, search
+**Notifications**: list_notifications, get_unread_notification_count, mark_notification_read, mark_notification_unread, mark_all_notifications_read, delete_notification
+
+**Habits**: list_habits, create_habit, complete_habit, get_habit_completions, delete_habit_completion, get_habit_stats, update_habit, delete_habit
+
+**Profile**: get_profile, update_profile, get_task_summary_status, toggle_task_summary, update_task_summary_frequency, send_task_summary_now, update_today_settings, update_sidebar_settings, update_ui_settings
+
+**Other**: list_inbox, get_inbox_item, add_to_inbox, update_inbox_item, process_inbox_item, analyze_inbox_text, delete_inbox_item, list_areas, get_area, create_area, update_area, delete_area, list_tags, get_tag, create_tag, update_tag, delete_tag, search, get_url_title, extract_urls_from_text, get_random_quote, list_feature_flags, get_version, get_registration_status
 
 ## Environment Variables
 

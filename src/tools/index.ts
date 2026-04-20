@@ -5,6 +5,9 @@ import { registerInboxTools } from "./inbox.js";
 import { registerMiscTools } from "./misc.js";
 import { registerNoteTools } from "./notes.js";
 import { registerViewTools } from "./views.js";
+import { registerNotificationTools } from "./notifications.js";
+import { registerHabitTools } from "./habits.js";
+import { registerProfileTools } from "./profile.js";
 
 export function registerAllTools(server: McpServer) {
   registerTaskTools(server);
@@ -13,4 +16,7 @@ export function registerAllTools(server: McpServer) {
   registerMiscTools(server);
   registerNoteTools(server);
   registerViewTools(server);
+  registerNotificationTools(server);
+  registerHabitTools(server);
+  registerProfileTools(server);
 }

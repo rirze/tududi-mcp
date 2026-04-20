@@ -94,9 +94,10 @@ export function registerProjectTools(server: McpServer) {
           .optional(),
         area_id: z.number().optional(),
         pin_to_sidebar: z.boolean().optional(),
+        due_date: z.string().optional().describe("New project due date in ISO format"),
       },
     },
-    async ({ uid, name, description, priority, status, area_id, pin_to_sidebar }) => {
+    async ({ uid, name, description, priority, status, area_id, pin_to_sidebar, due_date }) => {
       const body: Record<string, any> = {};
       if (name) body.name = name;
       if (description) body.description = description;
@@ -104,6 +105,7 @@ export function registerProjectTools(server: McpServer) {
       if (status) body.status = status;
       if (area_id !== undefined) body.area_id = area_id;
       if (pin_to_sidebar !== undefined) body.pin_to_sidebar = pin_to_sidebar;
+      if (due_date) body.due_date_at = due_date;
 
       const data = await tududiApi(`/project/${uid}`, {
         method: "PATCH",

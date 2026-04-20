@@ -1,7 +1,14 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { tududiApi, summarizeTask } from "../api.js";
-import { STATUS_MAP } from "../config.js";
+import {
+  getTaskCompletionToggleStatus,
+  getTaskListApiStatus,
+  TASK_STATUS_FILTER_VALUES,
+  TASK_STATUS_INPUT_VALUES,
+  taskMatchesStatusFilter,
+  type TaskStatusFilter,
+} from "../task-status.js";
 
 export function registerTaskTools(server: McpServer) {
   server.registerTool(
@@ -14,9 +21,9 @@ export function registerTaskTools(server: McpServer) {
           .optional()
           .describe("Filter tasks by type"),
         status: z
-          .enum(["pending", "completed", "archived"])
+          .enum(TASK_STATUS_FILTER_VALUES)
           .optional()
-          .describe("Filter by task status"),
+          .describe("Filter by task status. Supports Tududi statuses and legacy aliases."),
         project_id: z.number().optional().describe("Filter by project ID"),
         limit: z
           .number()
@@ -28,20 +35,25 @@ export function registerTaskTools(server: McpServer) {
     async ({ type, status, project_id, limit }) => {
       const params = new URLSearchParams();
       if (type) params.set("type", type);
-      if (status) params.set("status", status);
+      const apiStatus = getTaskListApiStatus(status as TaskStatusFilter | undefined);
+      if (apiStatus) params.set("status", apiStatus);
       if (project_id) params.set("project_id", project_id.toString());
 
       const query = params.toString();
       const data = await tududiApi(`/tasks${query ? `?${query}` : ""}`);
 
-      let tasks = data.tasks || data || [];
-      if (Array.isArray(tasks)) {
-        tasks = tasks.slice(0, limit || 50).map(summarizeTask);
-      }
+      const rawTasks = Array.isArray(data?.tasks) ? data.tasks : Array.isArray(data) ? data : [];
+      const summarizedTasks = rawTasks.map(summarizeTask);
+      const filteredTasks = status
+        ? summarizedTasks.filter((task: any) =>
+            taskMatchesStatusFilter(task.status, status as TaskStatusFilter)
+          )
+        : summarizedTasks;
+      const tasks = filteredTasks.slice(0, limit || 50);
 
       const result = {
         count: tasks.length,
-        total: (data.tasks || data || []).length,
+        total: filteredTasks.length,
         tasks,
       };
 
@@ -61,6 +73,7 @@ export function registerTaskTools(server: McpServer) {
     },
     async ({ id }) => {
       const data = await tududiApi(`/task/${id}`);
+      const subtasks = Array.isArray(data.subtasks) ? data.subtasks : Array.isArray(data.Subtasks) ? data.Subtasks : [];
 
       const task = {
         ...summarizeTask(data),
@@ -68,12 +81,7 @@ export function registerTaskTools(server: McpServer) {
         created_at: data.created_at,
         completed_at: data.completed_at,
         recurrence_type: data.recurrence_type,
-        subtasks:
-          data.subtasks?.map((s: any) => ({
-            id: s.id,
-            name: s.name,
-            status: STATUS_MAP[s.status] || s.status,
-          })) || [],
+        subtasks: subtasks.map((subtask: any) => summarizeTask(subtask)),
       };
 
       return {
@@ -133,7 +141,10 @@ export function registerTaskTools(server: McpServer) {
         name: z.string().optional().describe("New task name"),
         description: z.string().optional().describe("New description"),
         priority: z.enum(["low", "medium", "high"]).optional().describe("New priority"),
-        status: z.enum(["pending", "completed", "archived"]).optional().describe("New status"),
+        status: z
+          .enum(TASK_STATUS_INPUT_VALUES)
+          .optional()
+          .describe("New status. Supports Tududi statuses and legacy aliases."),
         due_date: z.string().optional().describe("New due date in ISO format"),
         project_id: z.number().optional().describe("Move to different project"),
         today: z.boolean().optional().describe("Add/remove from today's plan"),
@@ -145,7 +156,9 @@ export function registerTaskTools(server: McpServer) {
       if (name) body.name = name;
       if (description) body.note = description;
       if (priority) body.priority = priority;
-      if (status) body.status = status;
+      if (status) {
+        body.status = status === "pending" ? "not_started" : status === "completed" ? "done" : status;
+      }
       if (due_date) body.due_date = due_date;
       if (project_id !== undefined) body.project_id = project_id;
       if (today !== undefined) body.today = today;
@@ -171,12 +184,28 @@ export function registerTaskTools(server: McpServer) {
       },
     },
     async ({ id }) => {
-      const data = await tududiApi(`/task/${id}/toggle_completion`, {
+      const currentTask = await tududiApi(`/task/${id}`);
+      const targetStatus = getTaskCompletionToggleStatus(currentTask.status);
+
+      const data = await tududiApi(`/task/${id}`, {
         method: "PATCH",
+        body: JSON.stringify({ status: targetStatus }),
       });
 
       return {
-        content: [{ type: "text" as const, text: `Task completion toggled:\n${JSON.stringify(data, null, 2)}` }],
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                message: `Task completion toggled to ${targetStatus}`,
+                task: summarizeTask(data),
+              },
+              null,
+              2
+            ),
+          },
+        ],
       };
     }
   );
@@ -210,17 +239,33 @@ export function registerTaskTools(server: McpServer) {
       },
     },
     async ({ parent_id, name, priority, due_date }) => {
-      const body: Record<string, any> = { name };
+      const parentTask = await tududiApi(`/task/${parent_id}`);
+      const body: Record<string, any> = {
+        name,
+        parent_task_id: parentTask.id,
+      };
       if (priority) body.priority = priority;
       if (due_date) body.due_date = due_date;
 
-      const data = await tududiApi(`/task/${parent_id}/subtasks`, {
+      const data = await tududiApi("/task", {
         method: "POST",
         body: JSON.stringify(body),
       });
 
       return {
-        content: [{ type: "text" as const, text: `Subtask added:\n${JSON.stringify(data, null, 2)}` }],
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                message: `Subtask added under ${parentTask.name}`,
+                subtask: summarizeTask(data),
+              },
+              null,
+              2
+            ),
+          },
+        ],
       };
     }
   );

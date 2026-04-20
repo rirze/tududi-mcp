@@ -1,4 +1,5 @@
-import { API_BASE, TUDUDI_API_TOKEN, PRIORITY_MAP, STATUS_MAP } from "./config.js";
+import { API_BASE, TUDUDI_API_TOKEN, PRIORITY_MAP } from "./config.js";
+import { normalizeTaskStatusInput } from "./task-status.js";
 
 export async function tududiApi(
   endpoint: string,
@@ -30,15 +31,18 @@ export async function tududiApi(
 }
 
 export function summarizeTask(task: any): any {
+  const taskTags = Array.isArray(task.tags) ? task.tags : task.Tags;
+
   return {
     id: task.id,
     uid: task.uid,
     name: task.name,
     priority: PRIORITY_MAP[task.priority] || task.priority,
-    status: STATUS_MAP[task.status] || task.status,
+    status: normalizeTaskStatusInput(task.status) || task.status,
     due_date: task.due_date,
-    project: task.Project?.name || null,
-    tags: task.Tags?.map((t: any) => t.name) || [],
+    project: task.Project?.name || task.project?.name || null,
+    tags:
+      taskTags?.map((tag: any) => (typeof tag === "string" ? tag : tag.name)).filter(Boolean) || [],
     today: task.today || false,
   };
 }
@@ -50,7 +54,7 @@ export function summarizeProject(project: any): any {
     name: project.name,
     status: project.status,
     priority: PRIORITY_MAP[project.priority] || project.priority,
-    area: project.Area?.name || null,
+    area: project.Area?.name || project.area?.name || null,
     task_count: project.tasks?.length || project.task_count || 0,
   };
 }

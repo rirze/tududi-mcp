@@ -45,6 +45,23 @@ export function registerProjectTools(server: McpServer) {
   );
 
   server.registerTool(
+    "get_project",
+    {
+      description: "Get a specific project by UID with full details",
+      inputSchema: {
+        uid: z.string().describe("Project UID"),
+      },
+    },
+    async ({ uid }) => {
+      const data = await tududiApi(`/project/${uid}`);
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
     "create_project",
     {
       description: "Create a new project",
@@ -76,6 +93,25 @@ export function registerProjectTools(server: McpServer) {
 
       return {
         content: [{ type: "text" as const, text: `Project created:\n${JSON.stringify(data, null, 2)}` }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "delete_project",
+    {
+      description: "Delete a project",
+      inputSchema: {
+        uid: z.string().describe("Project UID"),
+      },
+    },
+    async ({ uid }) => {
+      await tududiApi(`/project/${uid}`, {
+        method: "DELETE",
+      });
+
+      return {
+        content: [{ type: "text" as const, text: `Project ${uid} deleted successfully` }],
       };
     }
   );

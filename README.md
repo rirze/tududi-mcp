@@ -50,9 +50,9 @@ Ask Claude things like:
 
 **Tasks**: list_tasks, get_task, create_task, update_task, complete_task, delete_task, add_subtask, get_task_metrics
 
-**Projects**: list_projects, create_project, update_project
+**Projects**: list_projects, get_project, create_project, update_project, delete_project
 
-**Other**: list_inbox, add_to_inbox, list_areas, list_tags, search
+**Other**: list_inbox, get_inbox_item, add_to_inbox, delete_inbox_item, list_areas, list_tags, search
 
 ## Environment Variables
 

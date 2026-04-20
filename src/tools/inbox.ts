@@ -26,6 +26,23 @@ export function registerInboxTools(server: McpServer) {
   );
 
   server.registerTool(
+    "get_inbox_item",
+    {
+      description: "Get a specific inbox item by UID",
+      inputSchema: {
+        uid: z.string().describe("Inbox item UID"),
+      },
+    },
+    async ({ uid }) => {
+      const data = await tududiApi(`/inbox/${uid}`);
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
     "add_to_inbox",
     {
       description: "Add an item to the inbox for later processing",
@@ -42,6 +59,25 @@ export function registerInboxTools(server: McpServer) {
 
       return {
         content: [{ type: "text" as const, text: `Added to inbox:\n${JSON.stringify(data, null, 2)}` }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "delete_inbox_item",
+    {
+      description: "Delete an inbox item",
+      inputSchema: {
+        uid: z.string().describe("Inbox item UID"),
+      },
+    },
+    async ({ uid }) => {
+      await tududiApi(`/inbox/${uid}`, {
+        method: "DELETE",
+      });
+
+      return {
+        content: [{ type: "text" as const, text: `Inbox item ${uid} deleted successfully` }],
       };
     }
   );

@@ -1,4 +1,4 @@
-import { API_BASE, TUDUDI_API_TOKEN, PRIORITY_MAP } from "./config.js";
+import { API_BASE, API_TIMEOUT_MS, TUDUDI_API_TOKEN, PRIORITY_MAP } from "./config.js";
 import { normalizeTaskStatusInput } from "./task-status.js";
 
 export async function tududiApi(
@@ -12,22 +12,33 @@ export async function tududiApi(
   }
 
   const url = `${API_BASE}${endpoint}`;
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${TUDUDI_API_TOKEN}`,
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: options.signal ?? AbortSignal.timeout(API_TIMEOUT_MS),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${TUDUDI_API_TOKEN}`,
+        ...options.headers,
+      },
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Tududi API error (${response.status}): ${error}`);
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Tududi API error (${response.status}): ${error}`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch (error: any) {
+    if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+      throw new Error(
+        `Tududi API request timed out after ${API_TIMEOUT_MS}ms: ${options.method || "GET"} ${endpoint}`
+      );
+    }
+
+    throw error;
   }
-
-  const text = await response.text();
-  return text ? JSON.parse(text) : null;
 }
 
 export function summarizeTask(task: any): any {

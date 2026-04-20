@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { tududiApi } from "../api.js";
+import { summarizeInboxItem, tududiApi } from "../api.js";
 
 export function registerInboxTools(server: McpServer) {
   server.registerTool(
@@ -19,8 +19,22 @@ export function registerInboxTools(server: McpServer) {
 
       const data = await tududiApi(`/inbox?${params.toString()}`);
 
+      const items = (Array.isArray(data?.items) ? data.items : []).map(summarizeInboxItem);
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                count: items.length,
+                items,
+                pagination: data?.pagination || null,
+              },
+              null,
+              2
+            ),
+          },
+        ],
       };
     }
   );
@@ -37,7 +51,7 @@ export function registerInboxTools(server: McpServer) {
       const data = await tududiApi(`/inbox/${uid}`);
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeInboxItem(data), null, 2) }],
       };
     }
   );
@@ -58,7 +72,72 @@ export function registerInboxTools(server: McpServer) {
       });
 
       return {
-        content: [{ type: "text" as const, text: `Added to inbox:\n${JSON.stringify(data, null, 2)}` }],
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeInboxItem(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "update_inbox_item",
+    {
+      description: "Update an inbox item",
+      inputSchema: {
+        uid: z.string().describe("Inbox item UID"),
+        content: z.string().optional().describe("Updated item content"),
+        status: z.string().optional().describe("Updated item status"),
+      },
+    },
+    async ({ uid, content, status }) => {
+      const body: Record<string, any> = {};
+      if (content !== undefined) body.content = content;
+      if (status !== undefined) body.status = status;
+
+      const data = await tududiApi(`/inbox/${uid}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeInboxItem(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "process_inbox_item",
+    {
+      description: "Mark an inbox item as processed",
+      inputSchema: {
+        uid: z.string().describe("Inbox item UID"),
+      },
+    },
+    async ({ uid }) => {
+      const data = await tududiApi(`/inbox/${uid}/process`, {
+        method: "PATCH",
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeInboxItem(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "analyze_inbox_text",
+    {
+      description: "Analyze inbox text without creating an inbox item",
+      inputSchema: {
+        content: z.string().describe("Text content to analyze"),
+      },
+    },
+    async ({ content }) => {
+      const data = await tududiApi("/inbox/analyze-text", {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
       };
     }
   );

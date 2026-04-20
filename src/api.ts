@@ -59,6 +59,71 @@ export function summarizeProject(project: any): any {
   };
 }
 
+export function summarizeArea(area: any): any {
+  return {
+    id: area.id,
+    uid: area.uid,
+    name: area.name,
+    description: area.description ?? null,
+  };
+}
+
+export function summarizeTag(tag: any): any {
+  return {
+    id: tag.id,
+    uid: tag.uid,
+    name: tag.name,
+  };
+}
+
+export function summarizeNote(note: any): any {
+  const noteTags = Array.isArray(note.tags) ? note.tags : note.Tags;
+
+  return {
+    id: note.id,
+    uid: note.uid,
+    title: note.title,
+    content: note.content ?? null,
+    project: note.Project?.name || note.project?.name || null,
+    tags:
+      noteTags?.map((tag: any) => (typeof tag === "string" ? tag : tag.name)).filter(Boolean) || [],
+    color: note.color ?? null,
+    created_at: note.created_at ?? null,
+    updated_at: note.updated_at ?? null,
+  };
+}
+
+export function summarizeInboxItem(item: any): any {
+  return {
+    uid: item.uid,
+    title: item.title ?? item.content ?? null,
+    content: item.content ?? null,
+    status: item.status ?? null,
+    source: item.source ?? null,
+    created_at: item.created_at ?? null,
+    updated_at: item.updated_at ?? null,
+  };
+}
+
+export function summarizeView(view: any): any {
+  return {
+    id: view.id,
+    uid: view.uid,
+    name: view.name,
+    search_query: view.search_query ?? null,
+    filters: Array.isArray(view.filters) ? view.filters : [],
+    priority: view.priority ?? null,
+    due: view.due ?? null,
+    defer: view.defer ?? null,
+    tags: Array.isArray(view.tags) ? view.tags : [],
+    extras: Array.isArray(view.extras) ? view.extras : [],
+    recurring: view.recurring ?? null,
+    is_pinned: view.is_pinned ?? false,
+    created_at: view.created_at ?? null,
+    updated_at: view.updated_at ?? null,
+  };
+}
+
 export function summarizeSearchResult(result: any): any {
   switch (result?.type) {
     case "Task":
@@ -79,13 +144,7 @@ export function summarizeSearchResult(result: any): any {
       };
     }
     case "Area":
-      return {
-        type: "Area",
-        id: result.id,
-        uid: result.uid,
-        name: result.name,
-        description: result.description ?? null,
-      };
+      return { type: "Area", ...summarizeArea(result) };
     case "Note":
       return {
         type: "Note",
@@ -96,12 +155,7 @@ export function summarizeSearchResult(result: any): any {
         description: result.description ?? null,
       };
     case "Tag":
-      return {
-        type: "Tag",
-        id: result.id,
-        uid: result.uid,
-        name: result.name,
-      };
+      return { type: "Tag", ...summarizeTag(result) };
     default:
       return result;
   }

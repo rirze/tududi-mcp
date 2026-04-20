@@ -294,4 +294,44 @@ export function registerTaskTools(server: McpServer) {
       };
     }
   );
+
+  server.registerTool(
+    "get_task_subtasks",
+    {
+      description: "Get subtasks for a specific task",
+      inputSchema: {
+        id: z.string().describe("Task UID"),
+      },
+    },
+    async ({ id }) => {
+      const data = await tududiApi(`/task/${id}/subtasks`);
+      const subtasks = (Array.isArray(data) ? data : []).map(summarizeTask);
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify({ count: subtasks.length, subtasks }, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_task_next_iterations",
+    {
+      description: "Get upcoming iterations for a recurring task",
+      inputSchema: {
+        id: z.string().describe("Task UID"),
+        start_from_date: z.string().optional().describe("Optional start date in ISO format"),
+      },
+    },
+    async ({ id, start_from_date }) => {
+      const params = new URLSearchParams();
+      if (start_from_date) params.set("startFromDate", start_from_date);
+
+      const query = params.toString();
+      const data = await tududiApi(`/task/${id}/next-iterations${query ? `?${query}` : ""}`);
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
 }

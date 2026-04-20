@@ -48,11 +48,15 @@ Ask Claude things like:
 
 ## Available Tools
 
-**Tasks**: list_tasks, get_task, create_task, update_task, complete_task, delete_task, add_subtask, get_task_metrics
+**Tasks**: list_tasks, get_task, create_task, update_task, complete_task, delete_task, add_subtask, get_task_metrics, get_task_subtasks, get_task_next_iterations
 
 **Projects**: list_projects, get_project, create_project, update_project, delete_project
 
-**Other**: list_inbox, get_inbox_item, add_to_inbox, delete_inbox_item, list_areas, list_tags, search
+**Notes**: list_notes, get_note, create_note, update_note, delete_note
+
+**Views**: list_views, list_pinned_views, get_view, create_view, update_view, delete_view
+
+**Other**: list_inbox, get_inbox_item, add_to_inbox, update_inbox_item, process_inbox_item, analyze_inbox_text, delete_inbox_item, list_areas, get_area, create_area, update_area, delete_area, list_tags, get_tag, create_tag, update_tag, delete_tag, search
 
 ## Environment Variables
 

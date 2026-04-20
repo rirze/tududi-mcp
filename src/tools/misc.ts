@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { summarizeSearchResult, tududiApi } from "../api.js";
+import { summarizeArea, summarizeSearchResult, summarizeTag, tududiApi } from "../api.js";
 
 export function registerMiscTools(server: McpServer) {
   server.registerTool(
@@ -10,9 +10,87 @@ export function registerMiscTools(server: McpServer) {
     },
     async () => {
       const data = await tududiApi("/areas");
+      const areas = (Array.isArray(data) ? data : []).map(summarizeArea);
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+        content: [{ type: "text" as const, text: JSON.stringify({ count: areas.length, areas }, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_area",
+    {
+      description: "Get a specific area by UID",
+      inputSchema: {
+        uid: z.string().describe("Area UID"),
+      },
+    },
+    async ({ uid }) => {
+      const data = await tududiApi(`/areas/${uid}`);
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeArea(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "create_area",
+    {
+      description: "Create a new area",
+      inputSchema: {
+        name: z.string().describe("Area name"),
+        description: z.string().optional().describe("Area description"),
+      },
+    },
+    async ({ name, description }) => {
+      const data = await tududiApi("/areas", {
+        method: "POST",
+        body: JSON.stringify({ name, description }),
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeArea(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "update_area",
+    {
+      description: "Update an existing area",
+      inputSchema: {
+        uid: z.string().describe("Area UID"),
+        name: z.string().optional(),
+        description: z.string().optional(),
+      },
+    },
+    async ({ uid, name, description }) => {
+      const data = await tududiApi(`/areas/${uid}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name, description }),
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeArea(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "delete_area",
+    {
+      description: "Delete an area",
+      inputSchema: {
+        uid: z.string().describe("Area UID"),
+      },
+    },
+    async ({ uid }) => {
+      await tududiApi(`/areas/${uid}`, { method: "DELETE" });
+
+      return {
+        content: [{ type: "text" as const, text: `Area ${uid} deleted successfully` }],
       };
     }
   );
@@ -24,9 +102,92 @@ export function registerMiscTools(server: McpServer) {
     },
     async () => {
       const data = await tududiApi("/tags");
+      const tags = (Array.isArray(data) ? data : []).map(summarizeTag);
 
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+        content: [{ type: "text" as const, text: JSON.stringify({ count: tags.length, tags }, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_tag",
+    {
+      description: "Get a tag by UID or name",
+      inputSchema: {
+        uid: z.string().optional().describe("Tag UID"),
+        name: z.string().optional().describe("Tag name"),
+      },
+    },
+    async ({ uid, name }) => {
+      const params = new URLSearchParams();
+      if (uid) params.set("uid", uid);
+      if (name) params.set("name", name);
+
+      const data = await tududiApi(`/tag?${params.toString()}`);
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeTag(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "create_tag",
+    {
+      description: "Create a new tag",
+      inputSchema: {
+        name: z.string().describe("Tag name"),
+      },
+    },
+    async ({ name }) => {
+      const data = await tududiApi("/tag", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeTag(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "update_tag",
+    {
+      description: "Update a tag by UID or name identifier",
+      inputSchema: {
+        identifier: z.string().describe("Tag UID or name"),
+        name: z.string().describe("New tag name"),
+      },
+    },
+    async ({ identifier, name }) => {
+      const data = await tududiApi(`/tag/${encodeURIComponent(identifier)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name }),
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeTag(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "delete_tag",
+    {
+      description: "Delete a tag by UID or name identifier",
+      inputSchema: {
+        identifier: z.string().describe("Tag UID or name"),
+      },
+    },
+    async ({ identifier }) => {
+      await tududiApi(`/tag/${encodeURIComponent(identifier)}`, {
+        method: "DELETE",
+      });
+
+      return {
+        content: [{ type: "text" as const, text: `Tag ${identifier} deleted successfully` }],
       };
     }
   );

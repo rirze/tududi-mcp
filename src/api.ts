@@ -58,3 +58,51 @@ export function summarizeProject(project: any): any {
     task_count: project.tasks?.length || project.task_count || 0,
   };
 }
+
+export function summarizeSearchResult(result: any): any {
+  switch (result?.type) {
+    case "Task":
+      return {
+        type: "Task",
+        ...summarizeTask(result),
+        description: result.description ?? result.note ?? null,
+        created_at: result.created_at ?? null,
+        completed_at: result.completed_at ?? null,
+        recurrence_type: result.recurrence_type ?? null,
+      };
+    case "Project": {
+      const summary = summarizeProject(result);
+      return {
+        type: "Project",
+        ...summary,
+        description: result.description ?? null,
+      };
+    }
+    case "Area":
+      return {
+        type: "Area",
+        id: result.id,
+        uid: result.uid,
+        name: result.name,
+        description: result.description ?? null,
+      };
+    case "Note":
+      return {
+        type: "Note",
+        id: result.id,
+        uid: result.uid,
+        name: result.name || result.title,
+        title: result.title || result.name || null,
+        description: result.description ?? null,
+      };
+    case "Tag":
+      return {
+        type: "Tag",
+        id: result.id,
+        uid: result.uid,
+        name: result.name,
+      };
+    default:
+      return result;
+  }
+}

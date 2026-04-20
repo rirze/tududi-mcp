@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { summarizeTask } from "./api.js";
+import { summarizeSearchResult, summarizeTask } from "./api.js";
 import {
   getTaskCompletionToggleStatus,
   normalizeTaskStatusInput,
@@ -51,5 +51,79 @@ test("summarizeTask reads Tududi serializer output correctly", () => {
     project: "MCP",
     tags: ["backend", "bugfix"],
     today: true,
+  });
+});
+
+test("summarizeSearchResult normalizes task search payloads", () => {
+  const summary = summarizeSearchResult({
+    type: "Task",
+    id: 42,
+    uid: "task_42",
+    name: "Review MCP server",
+    priority: 1,
+    status: 2,
+    due_date: "2026-04-21",
+    Project: { name: "MCP" },
+    tags: [{ name: "backend" }, { name: "bugfix" }],
+    note: "Task body",
+    recurrence_type: "none",
+    created_at: "2026-04-20T00:00:00.000Z",
+    completed_at: null,
+  });
+
+  assert.deepEqual(summary, {
+    type: "Task",
+    id: 42,
+    uid: "task_42",
+    name: "Review MCP server",
+    priority: "medium",
+    status: "done",
+    due_date: "2026-04-21",
+    project: "MCP",
+    tags: ["backend", "bugfix"],
+    today: false,
+    description: "Task body",
+    created_at: "2026-04-20T00:00:00.000Z",
+    completed_at: null,
+    recurrence_type: "none",
+  });
+});
+
+test("summarizeSearchResult normalizes note and project search payloads", () => {
+  const note = summarizeSearchResult({
+    type: "Note",
+    id: 7,
+    uid: "note_7",
+    title: "Weekly Review",
+    description: "Latest notes",
+  });
+  const project = summarizeSearchResult({
+    type: "Project",
+    id: 8,
+    uid: "proj_8",
+    name: "Operations",
+    description: "Ops work",
+    priority: 2,
+    status: "in_progress",
+  });
+
+  assert.deepEqual(note, {
+    type: "Note",
+    id: 7,
+    uid: "note_7",
+    name: "Weekly Review",
+    title: "Weekly Review",
+    description: "Latest notes",
+  });
+  assert.deepEqual(project, {
+    type: "Project",
+    id: 8,
+    uid: "proj_8",
+    name: "Operations",
+    description: "Ops work",
+    status: "in_progress",
+    priority: "high",
+    area: null,
+    task_count: 0,
   });
 });

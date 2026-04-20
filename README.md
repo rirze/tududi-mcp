@@ -60,4 +60,3 @@ Ask Claude things like:
 |----------|---------|----------|
 | `TUDUDI_API_TOKEN` | - | Yes |
 | `TUDUDI_URL` | `http://localhost:3002` | No |
-| `TUDUDI_API_TIMEOUT_MS` | `15000` | No |

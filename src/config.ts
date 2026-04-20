@@ -2,7 +2,6 @@ export const TUDUDI_URL = process.env.TUDUDI_URL || "http://localhost:3002";
 export const TUDUDI_API_TOKEN = process.env.TUDUDI_API_TOKEN;
 export const API_VERSION = process.env.TUDUDI_API_VERSION || "v1";
 export const API_BASE = `${TUDUDI_URL}/api/${API_VERSION}`;
-export const API_TIMEOUT_MS = Number(process.env.TUDUDI_API_TIMEOUT_MS || "15000");
 
 export const PRIORITY_MAP: Record<number, string> = {
   0: "low",

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { summarizeSearchResult, summarizeTask } from "./api.js";
+import { summarizeApiKey, summarizeQuote, summarizeSearchResult, summarizeShare, summarizeTask } from "./api.js";
 import {
   getTaskCompletionToggleStatus,
   normalizeTaskStatusInput,
@@ -125,5 +125,47 @@ test("summarizeSearchResult normalizes note and project search payloads", () => 
     priority: "high",
     area: null,
     task_count: 0,
+  });
+});
+
+test("summarizeApiKey, share, and quote normalize optional fields", () => {
+  assert.deepEqual(
+    summarizeApiKey({
+      id: 5,
+      name: "Integration",
+      token_prefix: "tt_deadbeef",
+      created_at: "2026-04-21T00:00:00.000Z",
+    }),
+    {
+      id: 5,
+      name: "Integration",
+      token_prefix: "tt_deadbeef",
+      created_at: "2026-04-21T00:00:00.000Z",
+      updated_at: null,
+      last_used_at: null,
+      expires_at: null,
+      revoked_at: null,
+    }
+  );
+
+  assert.deepEqual(
+    summarizeShare({
+      user_id: 9,
+      access_level: "read",
+      email: "user@example.com",
+      is_owner: false,
+    }),
+    {
+      user_id: 9,
+      access_level: "read",
+      email: "user@example.com",
+      avatar_image: null,
+      is_owner: false,
+      created_at: null,
+    }
+  );
+
+  assert.deepEqual(summarizeQuote("Stay focused"), {
+    text: "Stay focused",
   });
 });

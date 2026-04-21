@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { summarizeProfile, tududiApi } from "../api.js";
+import { summarizeApiKey, summarizeProfile, tududiApi } from "../api.js";
 
 export function registerProfileTools(server: McpServer) {
   server.registerTool(
@@ -43,6 +43,108 @@ export function registerProfileTools(server: McpServer) {
       });
       return {
         content: [{ type: "text" as const, text: JSON.stringify(summarizeProfile(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "change_password",
+    {
+      description: "Change the current user's password",
+      inputSchema: {
+        currentPassword: z.string().describe("Current password"),
+        newPassword: z.string().describe("New password"),
+      },
+    },
+    async ({ currentPassword, newPassword }) => {
+      const data = await tududiApi("/profile/change-password", {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "list_api_keys",
+    {
+      description: "List API keys for the current user",
+    },
+    async () => {
+      const data = await tududiApi("/profile/api-keys");
+      const api_keys = (Array.isArray(data) ? data : []).map(summarizeApiKey);
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify({ count: api_keys.length, api_keys }, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "create_api_key",
+    {
+      description: "Create a new API key",
+      inputSchema: {
+        name: z.string().describe("API key name"),
+        expires_at: z.string().optional().describe("Optional ISO expiration timestamp"),
+      },
+    },
+    async ({ name, expires_at }) => {
+      const data = await tududiApi("/profile/api-keys", {
+        method: "POST",
+        body: JSON.stringify({ name, expires_at }),
+      });
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                token: data?.token ?? null,
+                apiKey: data?.apiKey ? summarizeApiKey(data.apiKey) : null,
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+  );
+
+  server.registerTool(
+    "revoke_api_key",
+    {
+      description: "Revoke an API key by numeric ID",
+      inputSchema: {
+        id: z.number().describe("API key numeric ID"),
+      },
+    },
+    async ({ id }) => {
+      const data = await tududiApi(`/profile/api-keys/${id}/revoke`, {
+        method: "POST",
+      });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(summarizeApiKey(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "delete_api_key",
+    {
+      description: "Delete an API key by numeric ID",
+      inputSchema: {
+        id: z.number().describe("API key numeric ID"),
+      },
+    },
+    async ({ id }) => {
+      await tududiApi(`/profile/api-keys/${id}`, {
+        method: "DELETE",
+      });
+      return {
+        content: [{ type: "text" as const, text: `API key ${id} deleted successfully` }],
       };
     }
   );

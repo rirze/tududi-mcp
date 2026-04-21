@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { summarizeArea, summarizeSearchResult, summarizeTag, tududiApi } from "../api.js";
+import { summarizeArea, summarizeQuote, summarizeSearchResult, summarizeTag, tududiApi } from "../api.js";
 
 export function registerMiscTools(server: McpServer) {
   server.registerTool(
@@ -266,6 +266,33 @@ export function registerMiscTools(server: McpServer) {
 
       return {
         content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "list_quotes",
+    {
+      description: "List all bundled motivational quotes",
+    },
+    async () => {
+      const data = await tududiApi("/quotes");
+      const quotes = (Array.isArray(data?.quotes) ? data.quotes : []).map(summarizeQuote);
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                count: data?.count ?? quotes.length,
+                quotes,
+              },
+              null,
+              2
+            ),
+          },
+        ],
       };
     }
   );

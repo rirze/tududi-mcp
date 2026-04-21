@@ -8,6 +8,7 @@ import { registerViewTools } from "./views.js";
 import { registerNotificationTools } from "./notifications.js";
 import { registerHabitTools } from "./habits.js";
 import { registerProfileTools } from "./profile.js";
+import { registerShareTools } from "./shares.js";
 
 export function registerAllTools(server: McpServer) {
   registerTaskTools(server);
@@ -19,4 +20,5 @@ export function registerAllTools(server: McpServer) {
   registerNotificationTools(server);
   registerHabitTools(server);
   registerProfileTools(server);
+  registerShareTools(server);
 }

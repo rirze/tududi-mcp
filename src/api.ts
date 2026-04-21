@@ -141,6 +141,41 @@ export function summarizeNotification(notification: any): any {
   };
 }
 
+export function summarizeApiKey(apiKey: any): any {
+  return {
+    id: apiKey.id,
+    name: apiKey.name,
+    token_prefix: apiKey.token_prefix ?? null,
+    created_at: apiKey.created_at ?? null,
+    updated_at: apiKey.updated_at ?? null,
+    last_used_at: apiKey.last_used_at ?? null,
+    expires_at: apiKey.expires_at ?? null,
+    revoked_at: apiKey.revoked_at ?? null,
+  };
+}
+
+export function summarizeShare(share: any): any {
+  return {
+    user_id: share.user_id,
+    access_level: share.access_level ?? null,
+    email: share.email ?? null,
+    avatar_image: share.avatar_image ?? null,
+    is_owner: share.is_owner ?? false,
+    created_at: share.created_at ?? null,
+  };
+}
+
+export function summarizeQuote(quote: any): any {
+  if (typeof quote === "string") {
+    return { text: quote };
+  }
+
+  return {
+    text: quote?.text ?? quote?.quote ?? null,
+    author: quote?.author ?? null,
+  };
+}
+
 export function summarizeHabit(habit: any): any {
   return {
     id: habit.id,

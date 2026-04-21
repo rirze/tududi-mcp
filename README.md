@@ -60,9 +60,11 @@ Ask Claude things like:
 
 **Habits**: list_habits, create_habit, complete_habit, get_habit_completions, delete_habit_completion, get_habit_stats, update_habit, delete_habit
 
-**Profile**: get_profile, update_profile, get_task_summary_status, toggle_task_summary, update_task_summary_frequency, send_task_summary_now, update_today_settings, update_sidebar_settings, update_ui_settings
+**Profile & Access**: get_profile, update_profile, change_password, list_api_keys, create_api_key, revoke_api_key, delete_api_key, get_task_summary_status, toggle_task_summary, update_task_summary_frequency, send_task_summary_now, update_today_settings, update_sidebar_settings, update_ui_settings
 
-**Other**: list_inbox, get_inbox_item, add_to_inbox, update_inbox_item, process_inbox_item, analyze_inbox_text, delete_inbox_item, list_areas, get_area, create_area, update_area, delete_area, list_tags, get_tag, create_tag, update_tag, delete_tag, search, get_url_title, extract_urls_from_text, get_random_quote, list_feature_flags, get_version, get_registration_status
+**Shares**: list_shares, create_share, delete_share
+
+**Other**: list_inbox, get_inbox_item, add_to_inbox, update_inbox_item, process_inbox_item, analyze_inbox_text, delete_inbox_item, list_areas, get_area, create_area, update_area, delete_area, list_tags, get_tag, create_tag, update_tag, delete_tag, search, get_url_title, extract_urls_from_text, get_random_quote, list_quotes, list_feature_flags, get_version, get_registration_status
 
 ## Environment Variables
 

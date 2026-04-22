@@ -1,6 +1,13 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { summarizeArea, summarizeQuote, summarizeSearchResult, summarizeTag, tududiApi } from "../api.js";
+import {
+  summarizeArea,
+  summarizeMcpToolCategory,
+  summarizeQuote,
+  summarizeSearchResult,
+  summarizeTag,
+  tududiApi,
+} from "../api.js";
 
 export function registerMiscTools(server: McpServer) {
   server.registerTool(
@@ -307,6 +314,49 @@ export function registerMiscTools(server: McpServer) {
 
       return {
         content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_tududi_mcp_status",
+    {
+      description: "Get whether Tududi's built-in remote MCP endpoint is enabled",
+    },
+    async () => {
+      const data = await tududiApi("/mcp/status");
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_tududi_mcp_config",
+    {
+      description: "Get Tududi's suggested remote MCP client configuration",
+    },
+    async () => {
+      const data = await tududiApi("/mcp/config");
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "list_tududi_mcp_tools",
+    {
+      description: "List the tool categories exposed by Tududi's built-in remote MCP endpoint",
+    },
+    async () => {
+      const data = await tududiApi("/mcp/tools");
+      const tools = (Array.isArray(data?.tools) ? data.tools : []).map(summarizeMcpToolCategory);
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify({ count: tools.length, tools }, null, 2) }],
       };
     }
   );

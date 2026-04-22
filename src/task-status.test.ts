@@ -1,7 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { summarizeApiKey, summarizeQuote, summarizeSearchResult, summarizeShare, summarizeTask } from "./api.js";
+import {
+  summarizeApiKey,
+  summarizeMcpToolCategory,
+  summarizeQuote,
+  summarizeSearchResult,
+  summarizeShare,
+  summarizeTask,
+  summarizeUser,
+} from "./api.js";
 import {
   getTaskCompletionToggleStatus,
   normalizeTaskStatusInput,
@@ -168,4 +176,37 @@ test("summarizeApiKey, share, and quote normalize optional fields", () => {
   assert.deepEqual(summarizeQuote("Stay focused"), {
     text: "Stay focused",
   });
+
+  assert.deepEqual(
+    summarizeUser({
+      id: 1,
+      email: "user@example.com",
+      role: "admin",
+    }),
+    {
+      id: 1,
+      uid: null,
+      email: "user@example.com",
+      name: null,
+      surname: null,
+      role: "admin",
+      is_admin: true,
+      avatar_image: null,
+      language: null,
+      appearance: null,
+      timezone: null,
+    }
+  );
+
+  assert.deepEqual(
+    summarizeMcpToolCategory({
+      category: "Tasks",
+      tools: ["list_tasks", "get_task"],
+    }),
+    {
+      category: "Tasks",
+      count: 2,
+      tools: ["list_tasks", "get_task"],
+    }
+  );
 });

@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { summarizeApiKey, summarizeProfile, tududiApi } from "../api.js";
+import { summarizeApiKey, summarizeProfile, summarizeUser, tududiApi } from "../api.js";
 
 export function registerProfileTools(server: McpServer) {
   server.registerTool(
@@ -43,6 +43,20 @@ export function registerProfileTools(server: McpServer) {
       });
       return {
         content: [{ type: "text" as const, text: JSON.stringify(summarizeProfile(data), null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "list_users",
+    {
+      description: "List users in this Tududi instance",
+    },
+    async () => {
+      const data = await tududiApi("/users");
+      const users = (Array.isArray(data) ? data : []).map(summarizeUser);
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify({ count: users.length, users }, null, 2) }],
       };
     }
   );

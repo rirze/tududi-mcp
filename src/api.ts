@@ -154,6 +154,22 @@ export function summarizeApiKey(apiKey: any): any {
   };
 }
 
+export function summarizeUser(user: any): any {
+  return {
+    id: user.id,
+    uid: user.uid ?? null,
+    email: user.email ?? null,
+    name: user.name ?? null,
+    surname: user.surname ?? null,
+    role: user.role ?? null,
+    is_admin: user.is_admin ?? (user.role === "admin"),
+    avatar_image: user.avatar_image ?? null,
+    language: user.language ?? null,
+    appearance: user.appearance ?? null,
+    timezone: user.timezone ?? null,
+  };
+}
+
 export function summarizeShare(share: any): any {
   return {
     user_id: share.user_id,
@@ -173,6 +189,14 @@ export function summarizeQuote(quote: any): any {
   return {
     text: quote?.text ?? quote?.quote ?? null,
     author: quote?.author ?? null,
+  };
+}
+
+export function summarizeMcpToolCategory(category: any): any {
+  return {
+    category: category.category ?? null,
+    count: category.count ?? (Array.isArray(category.tools) ? category.tools.length : 0),
+    tools: Array.isArray(category.tools) ? category.tools : [],
   };
 }
 
